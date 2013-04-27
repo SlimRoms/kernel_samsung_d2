@@ -126,6 +126,12 @@ config CPU_FREQ_DEFAULT_GOV_LULZACTIVE
 	select CPU_FREQ_GOV_LULZACTIVE
 	help
 
+config CPU_FREQ_DEFAULT_GOV_ASSWAX
+	bool "asswax"
+	select CPU_FREQ_GOV_ASSWAX
+	help
+	  Use as default governor
+
 endchoice
 
 config CPU_FREQ_GOV_PERFORMANCE
@@ -233,6 +239,10 @@ config CPU_FREQ_GOV_DANCEDANCE
 
 config CPU_FREQ_GOV_LULZACTIVE
 	tristate "'lulzactive' cpufreq governor"
+	depends on CPU_FREQ
+
+config CPU_FREQ_GOV_ASSWAX
+	tristate "'asswax' cpufreq governor"
 	depends on CPU_FREQ
 
 menu "x86 CPU frequency scaling drivers"
