@@ -1,9 +1,9 @@
 /*
- * Linux cfg80211 driver - Dongle Host Driver (DHD) related
+ * Time stamps for latency measurements 
  *
- * Copyright (C) 1999-2012, Broadcom Corporation
+ * Copyright (C) 1999-2011, Broadcom Corporation
  * 
- *      Unless you and Broadcom execute a separate written software license
+ *         Unless you and Broadcom execute a separate written software license
  * agreement governing use of this software, this software is licensed to you
  * under the terms of the GNU General Public License version 2 (the "GPL"),
  * available at http://www.broadcom.com/licenses/GPLv2.php, with the
@@ -21,24 +21,54 @@
  * software in any way with any other Broadcom software provided under a license
  * other than the GPL, without Broadcom's express prior written consent.
  *
- * $Id: wl_cfg80211.c,v 1.1.4.1.2.14 2011/02/09 01:40:07 Exp $
+ * $Id: htsf.h 277737 2011-08-16 17:54:59Z $
  */
+#ifndef _HTSF_H_
+#define _HTSF_H_
 
+#define HTSFMAGIC       	0xCDCDABAB  /* in network order for tcpdump  */
+#define HTSFENDMAGIC    	0xEFEFABAB  /* to distinguish from RT2 magic */
+#define HTSF_HOSTOFFSET		102
+#define HTSF_DNGLOFFSET		HTSF_HOSTOFFSET	- 4
+#define HTSF_DNGLOFFSET2	HTSF_HOSTOFFSET	+ 106
+#define HTSF_MIN_PKTLEN 	200
+#define ETHER_TYPE_BRCM_PKTDLYSTATS     0x886d
 
-#ifndef __DHD_CFG80211__
-#define __DHD_CFG80211__
+typedef enum htsfts_type {
+	T10,
+	T20,
+	T30,
+	T40,
+	T50,
+	T60,
+	T70,
+	T80,
+	T90,
+	TA0,
+	TE0
+} htsf_timestamp_t;
 
-#include <wl_cfg80211.h>
-#include <wl_cfgp2p.h>
+typedef struct {
+	uint32 magic;
+	uint32 prio;
+	uint32 seqnum;
+	uint32 misc;
+	uint32 c10;
+	uint32 t10;
+	uint32 c20;
+	uint32 t20;
+	uint32 t30;
+	uint32 t40;
+	uint32 t50;
+	uint32 t60;
+	uint32 t70;
+	uint32 t80;
+	uint32 t90;
+	uint32 cA0;
+	uint32 tA0;
+	uint32 cE0;
+	uint32 tE0;
+	uint32 endmagic;
+} htsfts_t;
 
-s32 dhd_cfg80211_init(struct wl_priv *wl);
-s32 dhd_cfg80211_deinit(struct wl_priv *wl);
-s32 dhd_cfg80211_down(struct wl_priv *wl);
-s32 dhd_cfg80211_set_p2p_info(struct wl_priv *wl, int val);
-s32 dhd_cfg80211_clean_p2p_info(struct wl_priv *wl);
-s32 dhd_config_dongle(struct wl_priv *wl, bool need_lock);
-
-int wl_cfg80211_btcoex_init(struct wl_priv *wl);
-void wl_cfg80211_btcoex_deinit(struct wl_priv *wl);
-
-#endif /* __DHD_CFG80211__ */
+#endif /* _HTSF_H_ */
