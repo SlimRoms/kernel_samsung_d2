@@ -1004,7 +1004,7 @@ static void msm_hs_set_termios(struct uart_port *uport,
 		spin_unlock_irqrestore(&uport->lock, flags);
 		ret = wait_event_timeout(msm_uport->rx.wait,
 			msm_uport->rx_discard_flush_issued == false,
-			msecs_to_jiffies(50));
+			msecs_to_jiffies(300));
 			if (!ret) {
 				pr_err("%s(): timeout for rx discard flush\n",
 								__func__);
@@ -2297,6 +2297,7 @@ static int __devinit msm_hs_probe(struct platform_device *pdev)
 	uport = &msm_uport->uport;
 
 	uport->dev = &pdev->dev;
+	platform_set_drvdata(pdev, uport);
 
 	resource = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	if (unlikely(!resource))
