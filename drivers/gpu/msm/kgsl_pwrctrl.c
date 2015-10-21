@@ -34,6 +34,10 @@
 #define UPDATE_BUSY_VAL		1000000
 #define UPDATE_BUSY		50
 
+#ifdef CONFIG_CPU_FREQ_GOV_SLIM
+int graphics_boost = 6;
+#endif
+
 struct clk_pair {
 	const char *name;
 	uint map;
@@ -131,6 +135,10 @@ void kgsl_pwrctrl_pwrlevel_change(struct kgsl_device *device,
 	 */
 
 	pwr->active_pwrlevel = new_level;
+
+#ifdef CONFIG_CPU_FREQ_GOV_SLIM
+        graphics_boost = pwr->active_pwrlevel;
+#endif
 
 	if (test_bit(KGSL_PWRFLAGS_CLK_ON, &pwr->power_flags) ||
 		(device->state == KGSL_STATE_NAP)) {
