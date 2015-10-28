@@ -13,7 +13,6 @@
 #include <linux/module.h>
 #include <linux/slab.h>
 #include <linux/init.h>
-#include "kt_save_sched.h"
 
 enum zen_data_dir { ASYNC, SYNC };
 
@@ -166,25 +165,11 @@ static void *zen_init_queue(struct request_queue *q)
 		return NULL;
 	INIT_LIST_HEAD(&zdata->fifo_list[SYNC]);
 	INIT_LIST_HEAD(&zdata->fifo_list[ASYNC]);
-	load_prev_screen_on = isload_prev_screen_on();
-	if (load_prev_screen_on == 2)
-	{
-		zdata->fifo_expire[SYNC] = gsched_vars[0] / 10;
-		zdata->fifo_expire[ASYNC] = gsched_vars[1] / 10;
-		zdata->fifo_batch = gsched_vars[2];
-	}
-	else
-	{
-		zdata->fifo_expire[SYNC] = sync_expire;
-		zdata->fifo_expire[ASYNC] = async_expire;
-		zdata->fifo_batch = fifo_batch;
-		if (load_prev_screen_on == 0)
-		{
-			gsched_vars[0] = zdata->fifo_expire[SYNC] * 10;
-			gsched_vars[1] = zdata->fifo_expire[ASYNC] * 10;
-			gsched_vars[2] = zdata->fifo_batch;
-		}
-	}
+
+	zdata->fifo_expire[SYNC] = sync_expire;
+	zdata->fifo_expire[ASYNC] = async_expire;
+	zdata->fifo_batch = fifo_batch;
+
 	return zdata;
 }
 
@@ -239,7 +224,6 @@ static ssize_t __FUNC(struct elevator_queue *e, const char *page, size_t count) 
 		*(__PTR) = msecs_to_jiffies(__data); \
 	else \
 		*(__PTR) = __data; \
-	gsched_vars[NDX] = __data;					\
 	return ret; \
 }
 STORE_FUNCTION(zen_sync_expire_store, &zdata->fifo_expire[SYNC], 0, INT_MAX, 1, 0);

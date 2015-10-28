@@ -19,7 +19,6 @@
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/version.h>
-#include "kt_save_sched.h"
 
 enum { ASYNC, SYNC };
 
@@ -30,8 +29,8 @@ static const int sync_write_expire = 2 * HZ;	/* max time before a sync write is 
 static const int async_read_expire  =  4 * HZ;	/* ditto for async, these limits are SOFT! */
 static const int async_write_expire = 16 * HZ;	/* ditto for async, these limits are SOFT! */
 
-static const int writes_starved = 2;		/* max times reads can starve a write */
-static const int fifo_batch     = 8;		/* # of sequential requests treated as one
+static const int writes_starved = 1;		/* max times reads can starve a write */
+static const int fifo_batch     = 1;		/* # of sequential requests treated as one
 						   by the above parameters. For throughput. */
 
 /* Elevator data */
@@ -261,34 +260,12 @@ sio_init_queue(struct request_queue *q)
 
 	/* Initialize data */
 	sd->batched = 0;
-	load_prev_screen_on = isload_prev_screen_on();
-	if (load_prev_screen_on == 2)
-	{
-		sd->fifo_expire[SYNC][READ] = gsched_vars[0];
-		sd->fifo_expire[SYNC][WRITE] = gsched_vars[1];
-		sd->fifo_expire[ASYNC][READ] = gsched_vars[2];
-		sd->fifo_expire[ASYNC][WRITE] = gsched_vars[3];
-		sd->fifo_batch = gsched_vars[4];
-		sd->writes_starved = gsched_vars[5];
-	}
-	else
-	{
-		sd->fifo_expire[SYNC][READ] = sync_read_expire;
-		sd->fifo_expire[SYNC][WRITE] = sync_write_expire;
-		sd->fifo_expire[ASYNC][READ] = async_read_expire;
-		sd->fifo_expire[ASYNC][WRITE] = async_write_expire;
-		sd->fifo_batch = fifo_batch;
-		sd->writes_starved = 0;
-		if (load_prev_screen_on == 0)
-		{
-			gsched_vars[0] = sd->fifo_expire[SYNC][READ];
-			gsched_vars[1] = sd->fifo_expire[SYNC][WRITE];
-			gsched_vars[2] = sd->fifo_expire[ASYNC][READ];
-			gsched_vars[3] = sd->fifo_expire[ASYNC][WRITE];
-			gsched_vars[4] = sd->fifo_batch;
-			gsched_vars[5] = sd->writes_starved;
-		}
-	}
+	sd->fifo_expire[SYNC][READ] = sync_read_expire;
+	sd->fifo_expire[SYNC][WRITE] = sync_write_expire;
+	sd->fifo_expire[ASYNC][READ] = async_read_expire;
+	sd->fifo_expire[ASYNC][WRITE] = async_write_expire;
+	sd->fifo_batch = fifo_batch;
+
 	return sd;
 }
 
@@ -342,7 +319,7 @@ SHOW_FUNCTION(sio_fifo_batch_show, sd->fifo_batch, 0);
 SHOW_FUNCTION(sio_writes_starved_show, sd->writes_starved, 0);
 #undef SHOW_FUNCTION
 
-#define STORE_FUNCTION(__FUNC, __PTR, MIN, MAX, __CONV, NDX)		\
+#define STORE_FUNCTION(__FUNC, __PTR, MIN, MAX, __CONV)			\
 static ssize_t __FUNC(struct elevator_queue *e, const char *page, size_t count)	\
 {									\
 	struct sio_data *sd = e->elevator_data;			\
@@ -356,15 +333,14 @@ static ssize_t __FUNC(struct elevator_queue *e, const char *page, size_t count)	
 		*(__PTR) = msecs_to_jiffies(__data);			\
 	else								\
 		*(__PTR) = __data;					\
-	gsched_vars[NDX] = __data;					\
 	return ret;							\
 }
-STORE_FUNCTION(sio_sync_read_expire_store, &sd->fifo_expire[SYNC][READ], 0, INT_MAX, 1, 0);
-STORE_FUNCTION(sio_sync_write_expire_store, &sd->fifo_expire[SYNC][WRITE], 0, INT_MAX, 1, 1);
-STORE_FUNCTION(sio_async_read_expire_store, &sd->fifo_expire[ASYNC][READ], 0, INT_MAX, 1, 2);
-STORE_FUNCTION(sio_async_write_expire_store, &sd->fifo_expire[ASYNC][WRITE], 0, INT_MAX, 1, 3);
-STORE_FUNCTION(sio_fifo_batch_store, &sd->fifo_batch, 0, INT_MAX, 0, 4);
-STORE_FUNCTION(sio_writes_starved_store, &sd->writes_starved, 0, INT_MAX, 0, 5);
+STORE_FUNCTION(sio_sync_read_expire_store, &sd->fifo_expire[SYNC][READ], 0, INT_MAX, 1);
+STORE_FUNCTION(sio_sync_write_expire_store, &sd->fifo_expire[SYNC][WRITE], 0, INT_MAX, 1);
+STORE_FUNCTION(sio_async_read_expire_store, &sd->fifo_expire[ASYNC][READ], 0, INT_MAX, 1);
+STORE_FUNCTION(sio_async_write_expire_store, &sd->fifo_expire[ASYNC][WRITE], 0, INT_MAX, 1);
+STORE_FUNCTION(sio_fifo_batch_store, &sd->fifo_batch, 0, INT_MAX, 0);
+STORE_FUNCTION(sio_writes_starved_store, &sd->writes_starved, 0, INT_MAX, 0);
 #undef STORE_FUNCTION
 
 #define DD_ATTR(name) \
