@@ -53,7 +53,6 @@ choice
 config CPU_FREQ_DEFAULT_GOV_SLIM
 	bool "slim"
 	select CPU_FREQ_GOV_SLIM
-	select CPU_FREQ_GOV_PERFORMANCE
 	help
 	  Use the CPUFreq governor 'slim' as default. It is based on Flar's ElementX Governor.
 
